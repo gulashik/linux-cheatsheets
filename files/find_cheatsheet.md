@@ -8,7 +8,8 @@ find [ГДЕ] [ПАРАМЕТРЫ] [ТЕСТ/ФИЛЬТР] [ДЕЙСТВИЕ]
 
 ## Best practices
 
-- `2>/dev/null` убирает мусорные ошибки Permission denied
+- Шаблоны в одинарных кавычках - `find . -name '*.log'`
+- `2>/dev/null` убирает мусорные ошибки Permission denied - `find / -name 'config' 2>/dev/null`
 - Всегда проверяй командой без `-delete` перед удалением
 - Используй `-print0 | xargs -0` для файлов с пробелами
 - `-exec CMD {} +` быстрее чем `-exec CMD {} \;`
