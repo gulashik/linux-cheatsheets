@@ -1,0 +1,264 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-mono);font-size:13px}
+.shell{background:#1a1a1a;color:#e2e2e2;border-radius:var(--border-radius-lg);padding:1.5rem;margin-bottom:1.5rem}
+.shell-title{font-family:var(--font-sans);font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem}
+.builder{display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:var(--color-border-tertiary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:1.5rem}
+.row{display:grid;grid-template-columns:130px 1fr;background:var(--color-background-primary)}
+.row:first-child .cell{padding-top:1rem}
+.row:last-child .cell{padding-bottom:1rem}
+.cell{padding:.55rem 1rem;border:none}
+.cell.label{background:var(--color-background-secondary);color:var(--color-text-secondary);font-family:var(--font-sans);font-size:12px;font-weight:500;display:flex;align-items:flex-start;padding-top:.7rem;border-right:0.5px solid var(--color-border-tertiary)}
+.cell.opts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-family:var(--font-mono);font-size:12px;cursor:pointer;border:0.5px solid transparent;transition:opacity .15s,transform .1s;user-select:none}
+.tag:active{transform:scale(.97)}
+.tag.on{opacity:1}
+.tag.off{opacity:.45}
+.t-where{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.t-name{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.t-type{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.t-time{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.t-size{background:#FAECE7;color:#712B13;border-color:#F0997B}
+.t-perm{background:#FBEAF0;color:#72243E;border-color:#ED93B1}
+.t-depth{background:#EAF3DE;color:#27500A;border-color:#97C459}
+.t-action{background:#FCEBEB;color:#791F1F;border-color:#F09595}
+.t-logic{background:#F1EFE8;color:#444441;border-color:#B4B2A9}
+.preview{font-family:var(--font-mono);font-size:13px;color:#e2e2e2;background:#1a1a1a;border-radius:var(--border-radius-md);padding:1rem 1.25rem;min-height:44px;word-break:break-all;line-height:1.8}
+.seg-where{color:#c4b5fd}
+.seg-name{color:#6ee7b7}
+.seg-type{color:#fcd34d}
+.seg-time{color:#93c5fd}
+.seg-size{color:#fdba74}
+.seg-perm{color:#f9a8d4}
+.seg-depth{color:#86efac}
+.seg-action{color:#fca5a5}
+.seg-logic{color:#d1d5db}
+.seg-base{color:#e2e2e2}
+.hint{font-size:11px;color:var(--color-text-secondary);font-family:var(--font-sans);margin-top:.35rem;line-height:1.5;padding:0 2px}
+.section-title{font-family:var(--font-sans);font-size:12px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.07em;margin:1.5rem 0 .6rem}
+.examples{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.5rem}
+.ex-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:.75rem 1rem;cursor:pointer;transition:border-color .15s}
+.ex-card:hover{border-color:var(--color-border-secondary)}
+.ex-label{font-family:var(--font-sans);font-size:11px;color:var(--color-text-secondary);margin-bottom:.4rem}
+.ex-cmd{font-family:var(--font-mono);font-size:11px;color:var(--color-text-primary);word-break:break-all;line-height:1.6}
+.copy-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:4px 12px;background:transparent;color:var(--color-text-secondary);cursor:pointer;margin-top:.75rem;transition:background .15s}
+.copy-btn:hover{background:var(--color-background-secondary)}
+@media(prefers-color-scheme:dark){
+  .shell,.preview{background:#111}
+  .t-where{background:#26215C;color:#CECBF6;border-color:#534AB7}
+  .t-name{background:#04342C;color:#9FE1CB;border-color:#0F6E56}
+  .t-type{background:#412402;color:#FAC775;border-color:#854F0B}
+  .t-time{background:#042C53;color:#B5D4F4;border-color:#185FA5}
+  .t-size{background:#4A1B0C;color:#F5C4B3;border-color:#993C1D}
+  .t-perm{background:#4B1528;color:#F4C0D1;border-color:#993556}
+  .t-depth{background:#173404;color:#C0DD97;border-color:#3B6D11}
+  .t-action{background:#501313;color:#F7C1C1;border-color:#A32D2D}
+  .t-logic{background:#2C2C2A;color:#D3D1C7;border-color:#5F5E5A}
+}
+</style>
+
+<h2 class="sr-only" style="position:absolute;left:-9999px">Интерактивная шпаргалка команды find для Linux</h2>
+
+<div class="section-title">конструктор команды</div>
+
+<div class="builder">
+  <div class="row">
+    <div class="cell label">📍 Где искать</div>
+    <div class="cell opts" id="g-where">
+      <span class="tag t-where on" data-val="." data-seg="where">. <small>текущая</small></span>
+      <span class="tag t-where on" data-val="/home/user" data-seg="where">/home/user</span>
+      <span class="tag t-where on" data-val="/var/log" data-seg="where">/var/log</span>
+      <span class="tag t-where on" data-val="~" data-seg="where">~ <small>домашняя</small></span>
+      <span class="tag t-where on" data-val="/" data-seg="where">/ <small>корень</small></span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="cell label">🔤 Имя файла</div>
+    <div class="cell opts" id="g-name">
+      <span class="tag t-name off" data-val='-name "*.log"' data-seg="name">-name "*.log"</span>
+      <span class="tag t-name off" data-val='-name "*.py"' data-seg="name">-name "*.py"</span>
+      <span class="tag t-name off" data-val='-iname "*.TXT"' data-seg="name">-iname "*.TXT"</span>
+      <span class="tag t-name off" data-val='-name "config*"' data-seg="name">-name "config*"</span>
+      <span class="tag t-name off" data-val='-name "*.sh"' data-seg="name">-name "*.sh"</span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="cell label">📁 Тип</div>
+    <div class="cell opts" id="g-type">
+      <span class="tag t-type off" data-val="-type f" data-seg="type">-type f <small>файл</small></span>
+      <span class="tag t-type off" data-val="-type d" data-seg="type">-type d <small>директория</small></span>
+      <span class="tag t-type off" data-val="-type l" data-seg="type">-type l <small>симлинк</small></span>
+      <span class="tag t-type off" data-val="-type p" data-seg="type">-type p <small>pipe</small></span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="cell label">🕐 Время</div>
+    <div class="cell opts" id="g-time">
+      <span class="tag t-time off" data-val="-mtime -7" data-seg="time">-mtime -7 <small>изм &lt;7д</small></span>
+      <span class="tag t-time off" data-val="-mtime +30" data-seg="time">-mtime +30 <small>изм &gt;30д</small></span>
+      <span class="tag t-time off" data-val="-atime -1" data-seg="time">-atime -1 <small>доступ &lt;1д</small></span>
+      <span class="tag t-time off" data-val="-newer /etc/passwd" data-seg="time">-newer file</span>
+      <span class="tag t-time off" data-val="-mmin -60" data-seg="time">-mmin -60 <small>&lt;60мин</small></span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="cell label">⚖️ Размер</div>
+    <div class="cell opts" id="g-size">
+      <span class="tag t-size off" data-val="-size +100M" data-seg="size">-size +100M</span>
+      <span class="tag t-size off" data-val="-size -1k" data-seg="size">-size -1k</span>
+      <span class="tag t-size off" data-val="-size +1G" data-seg="size">-size +1G</span>
+      <span class="tag t-size off" data-val="-empty" data-seg="size">-empty <small>пустые</small></span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="cell label">🔒 Права</div>
+    <div class="cell opts" id="g-perm">
+      <span class="tag t-perm off" data-val="-perm 777" data-seg="perm">-perm 777</span>
+      <span class="tag t-perm off" data-val="-perm /u+x" data-seg="perm">-perm /u+x <small>exec</small></span>
+      <span class="tag t-perm off" data-val="-perm -4000" data-seg="perm">-perm -4000 <small>SUID</small></span>
+      <span class="tag t-perm off" data-val="-user root" data-seg="perm">-user root</span>
+      <span class="tag t-perm off" data-val="-group www-data" data-seg="perm">-group www-data</span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="cell label">🔢 Глубина</div>
+    <div class="cell opts" id="g-depth">
+      <span class="tag t-depth off" data-val="-maxdepth 1" data-seg="depth">-maxdepth 1</span>
+      <span class="tag t-depth off" data-val="-maxdepth 3" data-seg="depth">-maxdepth 3</span>
+      <span class="tag t-depth off" data-val="-mindepth 2" data-seg="depth">-mindepth 2</span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="cell label">⚙️ Действие</div>
+    <div class="cell opts" id="g-action">
+      <span class="tag t-action off" data-val="-print" data-seg="action">-print</span>
+      <span class="tag t-action off" data-val="-ls" data-seg="action">-ls</span>
+      <span class="tag t-action off" data-val="-delete" data-seg="action">-delete ⚠️</span>
+      <span class="tag t-action off" data-val='-exec ls -lh {} \;' data-seg="action">-exec ls -lh {}</span>
+      <span class="tag t-action off" data-val="-exec rm {} \;" data-seg="action">-exec rm {} ⚠️</span>
+      <span class="tag t-action off" data-val="| xargs grep -l 'TODO'" data-seg="action">xargs grep</span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="cell label">🔗 Логика</div>
+    <div class="cell opts" id="g-logic">
+      <span class="tag t-logic off" data-val="-not" data-seg="logic">-not</span>
+      <span class="tag t-logic off" data-val="-o" data-seg="logic">-o <small>OR</small></span>
+      <span class="tag t-logic off" data-val='\( -name "*.log" -o -name "*.txt" \)' data-seg="logic">\( … -o … \)</span>
+    </div>
+  </div>
+</div>
+
+<div class="section-title">предпросмотр команды</div>
+<div class="preview" id="preview"><span class="seg-base">find</span> <span class="seg-where" id="p-where">.</span></div>
+<button class="copy-btn" id="copybtn"><i class="ti ti-copy" aria-hidden="true"></i> Скопировать</button>
+
+<div class="section-title">примеры — нажми чтобы скопировать</div>
+<div class="examples">
+  <div class="ex-card" data-cmd='find . -name "*.log" -mtime +30 -delete'>
+    <div class="ex-label">удалить старые логи</div>
+    <div class="ex-cmd">find . -name "*.log" -mtime +30 -delete</div>
+  </div>
+  <div class="ex-card" data-cmd='find / -perm -4000 -type f 2>/dev/null'>
+    <div class="ex-label">найти SUID файлы (безопасность)</div>
+    <div class="ex-cmd">find / -perm -4000 -type f 2>/dev/null</div>
+  </div>
+  <div class="ex-card" data-cmd='find . -type f -size +50M -exec ls -lh {} \;'>
+    <div class="ex-label">большие файлы с деталями</div>
+    <div class="ex-cmd">find . -type f -size +50M -exec ls -lh {} \;</div>
+  </div>
+  <div class="ex-card" data-cmd="find . -type f -name '*.py' | xargs grep -l 'TODO'">
+    <div class="ex-label">найти TODO в Python файлах</div>
+    <div class="ex-cmd">find . -type f -name '*.py' | xargs grep -l 'TODO'</div>
+  </div>
+  <div class="ex-card" data-cmd='find /home -mtime -1 -type f -ls'>
+    <div class="ex-label">изменённые за сутки</div>
+    <div class="ex-cmd">find /home -mtime -1 -type f -ls</div>
+  </div>
+  <div class="ex-card" data-cmd='find . -type d -empty -delete'>
+    <div class="ex-label">удалить пустые папки</div>
+    <div class="ex-cmd">find . -type d -empty -delete</div>
+  </div>
+  <div class="ex-card" data-cmd='find . -not -path "*/node_modules/*" -name "*.js"'>
+    <div class="ex-label">исключить node_modules</div>
+    <div class="ex-cmd">find . -not -path "*/node_modules/*" -name "*.js"</div>
+  </div>
+  <div class="ex-card" data-cmd='find /var/log -name "*.gz" -mtime +7 -exec rm {} \;'>
+    <div class="ex-label">очистить архивные логи</div>
+    <div class="ex-cmd">find /var/log -name "*.gz" -mtime +7 -exec rm {} \;</div>
+  </div>
+</div>
+
+<script>
+const state = {where:'.',name:'',type:'',time:'',size:'',perm:'',depth:'',action:'',logic:''};
+
+function single(group,tag){
+  const g=document.getElementById('g-'+group);
+  g.querySelectorAll('.tag').forEach(t=>{
+    if(t===tag){t.classList.toggle('on');t.classList.toggle('off');}
+    else{t.classList.remove('on');t.classList.add('off');}
+  });
+}
+function toggle(group,tag){
+  tag.classList.toggle('on');tag.classList.toggle('off');
+}
+
+document.querySelectorAll('.tag').forEach(tag=>{
+  tag.addEventListener('click',()=>{
+    const seg=tag.dataset.seg;
+    const val=tag.dataset.val;
+    if(seg==='where'){
+      single('where',tag);
+      state.where=tag.classList.contains('on')?val:'.';
+    } else {
+      toggle(seg,tag);
+      state[seg]=tag.classList.contains('on')?val:'';
+    }
+    render();
+  });
+});
+
+function render(){
+  const p=document.getElementById('preview');
+  const parts=[];
+  if(state.depth) parts.push(`<span class="seg-depth">${esc(state.depth)}</span>`);
+  if(state.name)  parts.push(`<span class="seg-name">${esc(state.name)}</span>`);
+  if(state.type)  parts.push(`<span class="seg-type">${esc(state.type)}</span>`);
+  if(state.time)  parts.push(`<span class="seg-time">${esc(state.time)}</span>`);
+  if(state.size)  parts.push(`<span class="seg-size">${esc(state.size)}</span>`);
+  if(state.perm)  parts.push(`<span class="seg-perm">${esc(state.perm)}</span>`);
+  if(state.logic) parts.push(`<span class="seg-logic">${esc(state.logic)}</span>`);
+  const actionPart=state.action.startsWith('|')
+    ? `<span class="seg-base"> ${esc(state.action)}</span>`
+    : (state.action?`<span class="seg-action"> ${esc(state.action)}</span>`:'');
+  p.innerHTML=`<span class="seg-base">find</span> <span class="seg-where">${esc(state.where)}</span>`
+    +(parts.length?' '+parts.join(' '):'')+actionPart;
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function getCmd(){
+  const p=document.getElementById('preview');return p.innerText||p.textContent;
+}
+
+document.getElementById('copybtn').addEventListener('click',()=>{
+  const cmd=getCmd();
+  navigator.clipboard.writeText(cmd).then(()=>{
+    const btn=document.getElementById('copybtn');
+    btn.innerHTML='<i class="ti ti-check" aria-hidden="true"></i> Скопировано';
+    setTimeout(()=>{btn.innerHTML='<i class="ti ti-copy" aria-hidden="true"></i> Скопировать';},1500);
+  });
+});
+
+document.querySelectorAll('.ex-card').forEach(card=>{
+  card.addEventListener('click',()=>{
+    const cmd=card.dataset.cmd;
+    navigator.clipboard.writeText(cmd).then(()=>{
+      const orig=card.querySelector('.ex-label').textContent;
+      card.querySelector('.ex-label').textContent='✓ скопировано';
+      setTimeout(()=>{card.querySelector('.ex-label').textContent=orig;},1400);
+    });
+  });
+});
+</script>
